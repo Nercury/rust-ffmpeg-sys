@@ -36,6 +36,10 @@ build  = ["static"]
 # mark enums in generated bindings as #[non_exhaustive]
 non-exhaustive-enums = []
 
+version_4_2      = []
+version_4_3      = []
+version_4_4      = []
+
 # licensing
 build-license-gpl      = ["build"]
 build-license-nonfree  = ["build"]

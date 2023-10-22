@@ -129,16 +129,24 @@ impl ParseCallbacks for Callbacks {
 }
 
 fn version() -> String {
-    let major: u8 = env::var("CARGO_PKG_VERSION_MAJOR")
-        .unwrap()
-        .parse()
-        .unwrap();
-    let minor: u8 = env::var("CARGO_PKG_VERSION_MINOR")
-        .unwrap()
-        .parse()
-        .unwrap();
+    if env::var(concat!("CARGO_FEATURE_", "VERSION_4_2")).is_ok() {
+        format!("{}.{}", 4, 2)
+    } else if env::var(concat!("CARGO_FEATURE_", "VERSION_4_3")).is_ok() {
+        format!("{}.{}", 4, 3)
+    } else if env::var(concat!("CARGO_FEATURE_", "VERSION_4_4")).is_ok() {
+        format!("{}.{}", 4, 4)
+    } else {
+        let major: u8 = env::var("CARGO_PKG_VERSION_MAJOR")
+            .unwrap()
+            .parse()
+            .unwrap();
+        let minor: u8 = env::var("CARGO_PKG_VERSION_MINOR")
+            .unwrap()
+            .parse()
+            .unwrap();
 
-    format!("{}.{}", major, minor)
+        format!("{}.{}", major, minor)
+    }
 }
 
 fn output() -> PathBuf {
@@ -161,6 +169,7 @@ fn fetch() -> io::Result<()> {
     let output_base_path = output();
     let clone_dest_dir = format!("ffmpeg-{}", version());
     let _ = std::fs::remove_dir_all(output_base_path.join(&clone_dest_dir));
+
     let status = Command::new("git")
         .current_dir(&output_base_path)
         .arg("clone")
