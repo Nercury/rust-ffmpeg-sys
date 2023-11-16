@@ -171,6 +171,20 @@ fn fetch() -> io::Result<()> {
         .arg(&clone_dest_dir)
         .status()?;
 
+    let patches = [
+        ("libavcodec/x86/mathops.h", include_bytes!("patch/libavcodec/x86/mathops.h"))
+    ];
+
+    for (file, patch) in patches {
+        let target_patch_file = output_base_path.join(&clone_dest_dir).join(file);
+
+        if !target_patch_file.exists() {
+            panic!("file {:?} not found", target_patch_file);
+        }
+
+        std::fs::write(target_patch_file, patch).expect("failed to write patch");
+    }
+
     if status.success() {
         Ok(())
     } else {
