@@ -669,6 +669,16 @@ fn main() {
             if !full_path.exists() {
                 panic!("pre-built windows binaries not found");
             }
+
+            println!("cargo:rustc-link-lib=static=avcodec");
+            println!("cargo:rustc-link-lib=static=avdevice");
+            println!("cargo:rustc-link-lib=static=avfilter");
+            println!("cargo:rustc-link-lib=static=avformat");
+            println!("cargo:rustc-link-lib=static=avutil");
+            println!("cargo:rustc-link-lib=static=postproc");
+            println!("cargo:rustc-link-lib=static=swresample");
+            println!("cargo:rustc-link-lib=static=swscale");
+
             env_ffmpeg_dir = Some(full_path.to_str().unwrap().to_string())
         }
     }
