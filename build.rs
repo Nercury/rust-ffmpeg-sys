@@ -659,7 +659,29 @@ fn main() {
     // TODO: base it on enabled features, so far I have only configured version_4_2, version_4_3, version_4_4 - so it's not ffmpeg 5
     // let ffmpeg_major_version: u32 = env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap();
 
-    let include_paths: Vec<PathBuf> = if env::var("CARGO_FEATURE_BUILD").is_ok() {
+    let mut env_ffmpeg_dir;
+    env_ffmpeg_dir = env::var("FFMPEG_DIR").ok();
+
+    #[cfg(not(unix))]
+    {
+        if env_ffmpeg_dir.is_none() {
+            let full_path = env::current_dir().expect("current dir").join("vendor").join("Windows10").join("x64");
+            if !full_path.exists() {
+                panic!("pre-built windows binaries not found");
+            }
+            env_ffmpeg_dir = Some(full_path.to_str().unwrap().to_string())
+        }
+    }
+
+    let include_paths: Vec<PathBuf> = if let Some(ffmpeg_dir) = env_ffmpeg_dir {
+        let ffmpeg_dir = PathBuf::from(ffmpeg_dir);
+        println!(
+            "cargo:rustc-link-search=native={}",
+            ffmpeg_dir.join("lib").to_string_lossy()
+        );
+        link_to_libraries(statik);
+        vec![ffmpeg_dir.join("include")]
+    } else if env::var("CARGO_FEATURE_BUILD").is_ok() {
         println!(
             "cargo:rustc-link-search=native={}",
             search().join("lib").to_string_lossy()
@@ -695,15 +717,7 @@ fn main() {
         vec![search().join("include")]
     }
     // Use prebuilt library
-    else if let Ok(ffmpeg_dir) = env::var("FFMPEG_DIR") {
-        let ffmpeg_dir = PathBuf::from(ffmpeg_dir);
-        println!(
-            "cargo:rustc-link-search=native={}",
-            ffmpeg_dir.join("lib").to_string_lossy()
-        );
-        link_to_libraries(statik);
-        vec![ffmpeg_dir.join("include")]
-    } else if let Some(paths) = try_vcpkg(statik) {
+    else if let Some(paths) = try_vcpkg(statik) {
         // vcpkg doesn't detect the "system" dependencies
         if statik {
             if cfg!(feature = "avcodec") || cfg!(feature = "avdevice") {
