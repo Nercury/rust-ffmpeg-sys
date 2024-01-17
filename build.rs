@@ -654,6 +654,19 @@ fn link_to_libraries(statik: bool) {
     }
 }
 
+fn get_cargo_target_dir() -> Result<PathBuf, Box<dyn std::error::Error>> {
+    let skip_triple = std::env::var("TARGET")? == std::env::var("HOST")?;
+    let skip_parent_dirs = if skip_triple { 4 } else { 5 };
+
+    let out_dir = std::path::PathBuf::from(std::env::var("OUT_DIR")?);
+    let mut current = out_dir.as_path();
+    for _ in 0..skip_parent_dirs {
+        current = current.parent().ok_or("not found")?;
+    }
+
+    Ok(std::path::PathBuf::from(current))
+}
+
 fn main() {
     let statik = env::var("CARGO_FEATURE_STATIC").is_ok();
     // TODO: base it on enabled features, so far I have only configured version_4_2, version_4_3, version_4_4 - so it's not ffmpeg 5
@@ -678,7 +691,14 @@ fn main() {
             println!("cargo:rustc-link-lib=static=postproc");
             println!("cargo:rustc-link-lib=static=swresample");
             println!("cargo:rustc-link-lib=static=swscale");
-            println!("cargo:rustc-link-lib=static=x264");
+            println!("cargo:rustc-link-lib=dylib=x264");
+
+            let profile = env::var("PROFILE").unwrap();
+
+            fs::copy(
+                full_path.join("bin").join("x264.dll"),
+                get_cargo_target_dir().unwrap().join(profile).join("x264.dll")
+            ).expect("copy x264.dll");
 
             env_ffmpeg_dir = Some(full_path.to_str().unwrap().to_string())
         }
