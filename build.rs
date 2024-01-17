@@ -678,6 +678,7 @@ fn main() {
             println!("cargo:rustc-link-lib=static=postproc");
             println!("cargo:rustc-link-lib=static=swresample");
             println!("cargo:rustc-link-lib=static=swscale");
+            println!("cargo:rustc-link-lib=static=x264");
 
             env_ffmpeg_dir = Some(full_path.to_str().unwrap().to_string())
         }
