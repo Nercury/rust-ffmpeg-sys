@@ -654,6 +654,16 @@ fn link_to_libraries(statik: bool) {
     }
 }
 
+fn get_build_profile_name() -> String {
+    // The profile name is always the 3rd last part of the path (with 1 based indexing).
+    // e.g. /code/core/target/cli/build/my-build-info-9f91ba6f99d7a061/out
+    env!("OUT_DIR")
+        .split(std::path::MAIN_SEPARATOR)
+        .nth_back(3)
+        .unwrap_or_else(|| "unknown")
+        .to_string()
+}
+
 fn get_cargo_target_dir() -> Result<PathBuf, Box<dyn std::error::Error>> {
     let skip_triple = std::env::var("TARGET")? == std::env::var("HOST")?;
     let skip_parent_dirs = if skip_triple { 4 } else { 5 };
@@ -693,7 +703,7 @@ fn main() {
             println!("cargo:rustc-link-lib=static=swscale");
             println!("cargo:rustc-link-lib=dylib=x264");
 
-            let profile = env::var("PROFILE").unwrap();
+            let profile = get_build_profile_name();
 
             fs::copy(
                 full_path.join("bin").join("x264.dll"),
