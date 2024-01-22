@@ -657,7 +657,7 @@ fn link_to_libraries(statik: bool) {
 fn get_build_profile_name() -> String {
     // The profile name is always the 3rd last part of the path (with 1 based indexing).
     // e.g. /code/core/target/cli/build/my-build-info-9f91ba6f99d7a061/out
-    env!("OUT_DIR")
+    std::env::var("OUT_DIR").expect("out dir")
         .split(std::path::MAIN_SEPARATOR)
         .nth_back(3)
         .unwrap_or_else(|| "unknown")
